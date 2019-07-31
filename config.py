@@ -5,8 +5,8 @@ from utils.log import logger
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 DEFAULT_CONFIG = {
-    'lr': 0.001,
-    'epoch': 5,
+    'lr': 0.005,
+    'epoch': 15,
     'lr_decay': 0.01,
     'weight_decay': None,
     'batch_size': 512,
