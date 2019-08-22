@@ -72,9 +72,9 @@ def format_data(dataset_path):
     return format_path
 
 
-vectors_path = 'corpus_300.txt'
-
-V = Vectors(vectors_path, cache='data')
-
-with open('corpus_300', 'wb') as f:
-    pickle.dump(V, f)
+# vectors_path = 'corpus_300.txt'
+#
+# V = Vectors(vectors_path, cache='data')
+#
+# with open('corpus_300', 'wb') as f:
+#     pickle.dump(V, f)

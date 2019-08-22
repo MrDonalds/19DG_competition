@@ -5,16 +5,16 @@ from utils.log import logger
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 DEFAULT_CONFIG = {
-    'lr': 0.005,
-    'epoch': 15,
-    'lr_decay': 0.01,
+    'lr': 0.01,
+    'epoch': 160,
+    'lr_decay': 0.9,
     'weight_decay': None,
-    'batch_size': 512,
+    'batch_size': 600,
     'dropout': 0.5,
     'pretrain_vectors': True,
     'static': False,  # ner/model.py 43
     'embedding_dim': 300,
-    'hidden_dim': 300,
+    'hidden_dim': 200,
     'num_layers': 2,
     'pad_index': 1,
     'vector_path': '',
@@ -22,7 +22,7 @@ DEFAULT_CONFIG = {
     # 'vocabulary_size': 0,
     'word_vocab': None,
     'tag_vocab': None,
-    'save_path': './saves'
+    'save_path': './utils'
 }
 
 
@@ -33,8 +33,8 @@ class Config(object):
             setattr(self, name, value)
         self.word_vocab = word_vocab
         self.tag_vocab = tag_vocab
-        self.tag_num = len(self.tag_vocab)
-        self.vocabulary_size = len(self.word_vocab)
+        self.tag_num = len(self.tag_vocab) if tag_vocab else 0
+        self.vocabulary_size = len(self.word_vocab) if word_vocab else 0
         self.vector_path = vector_path
         for name, value in kwargs.items():
             setattr(self, name, value)

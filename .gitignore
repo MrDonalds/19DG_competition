@@ -1,0 +1,15 @@
+#ignore some Python general files
+.idea/
+__pycache__/
+utils/__pycache__/
+data/__pycache__/
+logs/
+ner_save/
+
+
+#ignore my test files
+lstm_basic.py
+test_sumbit.txt
+utils/log_test.py
+torch_crf.py
+test_result.txt

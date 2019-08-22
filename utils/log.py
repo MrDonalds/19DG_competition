@@ -4,9 +4,7 @@
 """
     log.py
     ~~~~~~
-
     log module
-
     :author:    lightless <root@lightless.me>
     :homepage:  None
     :license:   GPL-3.0, see LICENSE for more details.
@@ -28,10 +26,15 @@ LEVEL_COLOR = {
     'ERROR': 'red',
     'CRITICAL': 'red,bg_white',
 }
-STDOUT_LOG_FMT = "%(log_color)s[%(asctime)s] [%(levelname)s] [%(threadName)s] [%(filename)s:%(lineno)d] %(message)s"
-STDOUT_DATE_FMT = "%Y-%m-%d %H:%M:%S"
-FILE_LOG_FMT = "[%(asctime)s] [%(levelname)s] [%(threadName)s] [%(filename)s:%(lineno)d] %(message)s"
-FILE_DATE_FMT = "%Y-%m-%d %H:%M:%S"
+# STDOUT_LOG_FMT = "%(log_color)s[%(asctime)s] [%(levelname)s] [%(threadName)s] [%(filename)s:%(lineno)d] %(message)s"
+# STDOUT_DATE_FMT = "%Y-%m-%d %H:%M:%S"
+# FILE_LOG_FMT = "[%(asctime)s] [%(levelname)s] [%(threadName)s] [%(filename)s:%(lineno)d] %(message)s"
+# FILE_DATE_FMT = "%Y-%m-%d %H:%M:%S"
+
+STDOUT_LOG_FMT = "%(log_color)s[%(asctime)s] [%(levelname)s] %(message)s"
+STDOUT_DATE_FMT = "%m-%d %H:%M:%S"
+FILE_LOG_FMT = "[%(asctime)s] %(message)s"
+FILE_DATE_FMT = "%m-%d %H:%M:%S"
 # 用户配置部分 ↑
 
 
@@ -125,4 +128,4 @@ def _get_logger(log_to_file=True, log_filename="default.log", log_level="DEBUG")
     return _logger
 
 
-logger = _get_logger(log_to_file=False)
+logger = _get_logger(log_to_file=True, log_level="INFO")
