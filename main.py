@@ -53,19 +53,20 @@ def main():
     # ####################### 加载模型进行预测，生成提交文件
     # config = Config(None, None, vector_path=vectors_path, save_path=save_path)
     # model = Ner(config, None, None, None)
-    model.load()
-    with open('./data/datagrand/test.txt', 'r') as f:
-        with open('test_sumbit.txt', 'w') as sub:
-            lines = f.readlines()
-            for i, line in enumerate(lines):
-                line = line.strip().split('_')
-                res = model.predict(line)
-                if i % 1000 == 0:
-                    print(i)
-                sub.write(res + '\n')
 
-    end = time.time()
-    print('total run time: ', int(end - start))
+    # model.load()
+    # with open('./data/datagrand/test.txt', 'r') as f:
+    #     with open('test_sumbit.txt', 'w') as sub:
+    #         lines = f.readlines()
+    #         for i, line in enumerate(lines):
+    #             line = line.strip().split('_')
+    #             res = model.predict(line)
+    #             if i % 1000 == 0:
+    #                 print(i)
+    #             sub.write(res + '\n')
+    #
+    # end = time.time()
+    # print('total run time: ', int(end - start))
 
 
 if __name__ == '__main__':

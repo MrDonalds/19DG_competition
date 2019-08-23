@@ -5,11 +5,13 @@ from utils.log import logger
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 DEFAULT_CONFIG = {
-    'lr': 0.01,
+    'model_choose': 'bert',
+
+    'lr': 0.0001,
     'epoch': 160,
     'lr_decay': 0.9,
     'weight_decay': None,
-    'batch_size': 600,
+    'batch_size': 60,
     'dropout': 0.5,
     'pretrain_vectors': True,
     'static': False,  # ner/model.py 43
@@ -22,7 +24,12 @@ DEFAULT_CONFIG = {
     # 'vocabulary_size': 0,
     'word_vocab': None,
     'tag_vocab': None,
-    'save_path': './utils'
+    'save_path': './ner_save',
+
+    'bert_embedding_dim': 384,
+    'bert_config_json': './ner_save/bert_config.json',
+    'bert_weight': './ner_save/bert_weight.bin',
+    'warmup_proportion': 0.1
 }
 
 

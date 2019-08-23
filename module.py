@@ -1,11 +1,11 @@
 import torch
 import pickle
 from tqdm import tqdm
-from model import BiLstmCrf
+from model import BiLstmCrf, BertBiLstmCrf
 from config import Config, DEVICE
 from utils.log import logger
 from utils.tool import data_tool
-
+from pytorch_pretrained_bert import BertAdam
 
 class Ner(object):
 
@@ -18,12 +18,17 @@ class Ner(object):
         self.dev_dataset = dev_dataset
         self._word_vocab = config.word_vocab
         self._tag_vocab = config.tag_vocab
-
-        self._model = BiLstmCrf(args=self.args)  # config 参数,需要传入word_vocab 以帮助词向量与现有数据的词汇表对应。
+        if self.args.model_choose == 'bert':
+            self._model = BertBiLstmCrf(args=self.args)
+        else:
+            self._model = BiLstmCrf(args=self.args)  # config 参数,需要传入word_vocab 以帮助词向量与现有数据的词汇表对应。
 
     def train(self):  # 训练模型
         # 优化器
-        optim = torch.optim.Adam(self._model.parameters(), lr=self.args.lr)  # , weight_decay=self.args.weight_decay)
+        if self.args.model_choose == 'bert':
+            optim = BertAdam(self._model.parameters(), lr=self.args.lr, warmup=self.args.warmup_proportion, t_total=65*self.args.epoch)
+        else:
+            optim = torch.optim.Adam(self._model.parameters(), lr=self.args.lr)  # , weight_decay=self.args.weight_decay)
         #         scheduler=torch.optim.lr_scheduler.StepLR(optim,step_size=20,gamma=0.9)
         scheduler = torch.optim.lr_scheduler.MultiStepLR(optim, milestones=[50, 100], gamma=0.5, last_epoch=-1)
         dev_score_best = 0
@@ -34,7 +39,7 @@ class Ner(object):
             # 调整学习率
             scheduler.step()
             train_loss = 0
-            for item in (self.train_iter):
+            for item in tqdm(self.train_iter):
                 self._model.zero_grad()
                 item_text_sentences = item.text[0]
                 item_text_lengths = item.text[1]
@@ -44,40 +49,40 @@ class Ner(object):
                 optim.step()
             # logger.info('epoch: {}, train_loss: {}'.format(epoch, train_loss))
 
-                self._model.eval()  # 设置为分析模式
-                dev_loss = 0
-                for item in (self.dev_iter):
-                    item_text_sentences = item.text[0]
-                    item_text_lengths = item.text[1]
-                    loss = self._model.loss(item_text_sentences, item_text_lengths, item.tag)
-                    dev_loss += loss.item()
+            self._model.eval()  # 设置为分析模式
+            dev_loss = 0
+            for item in (self.dev_iter):
+                item_text_sentences = item.text[0]
+                item_text_lengths = item.text[1]
+                loss = self._model.loss(item_text_sentences, item_text_lengths, item.tag)
+                dev_loss += loss.item()
 
-    # logger.info('epoch: {}, train_loss:{}, dev_loss:{}'.format(epoch, train_loss, dev_loss))
+# logger.info('epoch: {}, train_loss:{}, dev_loss:{}'.format(epoch, train_loss, dev_loss))
 
-                if epoch%10 == 5:  # 计算验证集的 f1 分数,  还有一种办法就是计算验证集的 loss, 选择 loss 较小的保存下来。
-                    dev_score = self._validata(self.dev_dataset)
-                logger.info('epoch: {}, train_loss:{}, dev_loss:{}, dev_score:{}'.format(epoch, train_loss, dev_loss, dev_score))
+            if epoch%10 == 5:  # 计算验证集的 f1 分数,  还有一种办法就是计算验证集的 loss, 选择 loss 较小的保存下来。
+                dev_score = self._validata(self.dev_dataset)
+            logger.info('epoch: {}, train_loss:{}, dev_loss:{}, dev_score:{}'.format(epoch, train_loss, dev_loss, dev_score))
 
-                result_dict['epoch'].append(epoch)
-                result_dict['train_loss'].append(train_loss)
-                result_dict['dev_loss'].append(dev_loss)
-                result_dict['dev_score'].append(dev_score)
-            pickle_result = open('ner_save/res.pkl','wb')
-            pickle.dump(result_dict, pickle_result)
-            pickle_result.close()
+            result_dict['epoch'].append(epoch)
+            result_dict['train_loss'].append(train_loss)
+            result_dict['dev_loss'].append(dev_loss)
+            result_dict['dev_score'].append(dev_score)
+        pickle_result = open('ner_save/res.pkl','wb')
+        pickle.dump(result_dict, pickle_result)
+        pickle_result.close()
 
-            # save checkpoints, 将分数最高的模型的参数保存下来。
-            if dev_score > dev_score_best:
-                dev_score_best = dev_score
-                checkpoint = {
-                    'state_dict': self._model.state_dict(),
-                    'config': self.args
-                }
-                torch.save(checkpoint, '{}checkpoint_{}'.format(epoch, dev_score_best))
-                logger.info('Best tmp model f1: {}'.format(dev_score_best))
-            else:
-                # 要加载checkpoint的话：self._model.load_state_dict(torch.load('checkpoint')['state_dict'])
-                pass  # 可以选择在此处调整学习率
+# # save checkpoints, 将分数最高的模型的参数保存下来。
+# if dev_score > dev_score_best:
+#     dev_score_best = dev_score
+#     checkpoint = {
+#         'state_dict': self._model.state_dict(),
+#         'config': self.args
+#     }
+#     torch.save(checkpoint, '{}checkpoint_{}'.format(epoch, dev_score_best))
+#     logger.info('Best tmp model f1: {}'.format(dev_score_best))
+# else:
+#     # 要加载checkpoint的话：self._model.load_state_dict(torch.load('checkpoint')['state_dict'])
+#     pass  # 可以选择在此处调整学习率
 
     def predict(self, text):  # 得到预测结果
         self._model.eval()
@@ -151,3 +156,22 @@ class Ner(object):
             else:
                 print('error: **********************************')
         return '  '.join(ranges)
+
+
+class Ner_bert(object):
+    def __init__(self, config, train_iter, dev_iter, dev_dataset):
+        self.args = config
+        self._model = None
+        # self.best_model = None
+        self.train_iter = train_iter
+        self.dev_iter = dev_iter
+        self.dev_dataset = dev_dataset
+        self._word_vocab = config.word_vocab
+        self._tag_vocab = config.tag_vocab
+
+        self._model = BiLstmCrf(args=self.args)  # config 参数,需要传入word_vocab 以帮助词向量与现有数据的词汇表对应。
+
+    def train(self):
+        optimizer = BertAdam(self._model.parameters, lr=self.args.lr)
+
+
