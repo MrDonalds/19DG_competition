@@ -7,7 +7,7 @@ DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 DEFAULT_CONFIG = {
     'model_choose': 'bert',
 
-    'lr': 0.0001,
+    'lr': 0.001,
     'epoch': 160,
     'lr_decay': 0.9,
     'weight_decay': None,

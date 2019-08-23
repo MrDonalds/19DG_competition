@@ -101,7 +101,7 @@ class BiLstmCrf(BaseModel):  # 模型网络定义，BiLstm共4层：embedding ls
 
     def forward(self, x, sent_lengths):  # 前向传播函数，模型的 input -> forward -> output
         mask = torch.ne(x, self.pad_index)
-        emissions = self.lstm_forward(x, sent_lengths)
+        emissions = self.lstm_forward(x, sent_lengths, mask)
         emissions = torch.transpose(emissions, 1, 0)  # 矩阵转置为：[batch_size*sentence_length*tag_size]
         mask = torch.transpose(mask, 1, 0)
         path_score, best_paths = self.crf_layer(emissions, mask)
